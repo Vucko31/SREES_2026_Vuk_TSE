@@ -16,11 +16,11 @@ else()
     set(HOME_ROOT $ENV{HOME})
 endif()
 
-set(PROJECT_HOME_ROOT "${HOME_ROOT}/GitHub/SREES_2026_Vuk_TSE")
+set(PROJECT_HOME_ROOT "${HOME_ROOT}/GitHub/SREES_2026_Vuk_TSE/src")
 string(FIND "${SOURCE_ROOT}" "${PROJECT_HOME_ROOT}" PROJECT_IN_HOME_GITHUB)
 if (NOT PROJECT_IN_HOME_GITHUB EQUAL 0)
     message(FATAL_ERROR
-        "This project must be configured from the user's HOME GitHub project folder. "
+        "This project must be configured from the user's HOME GitHub project src folder. "
         "Move/copy it under '${PROJECT_HOME_ROOT}' and use a fresh empty build folder. "
         "If CMake was already configured with another source path, delete CMakeCache.txt "
         "or delete the whole build folder before configuring again."
