@@ -1,0 +1,225 @@
+Header:
+	maxIter=50
+	report=AllDetails
+end
+// Three-phase WLS state-estimation model generated from MATPOWER three-phase data
+// Native complex-coordinate estimator: v1, v2, ... are complex bus-phase voltages.
+// Uses bus3p, lc, line3p, xfmr3p, load3p, gen3p and shunt3p.
+Model [type=WLS domain=cmplx eps=1e-5 name="Three Phase Complex WLS State Estimation"]:
+Vars [out=true]:
+	v1=init1
+	v2=init2
+	v3=init3
+	v4=init4
+	v5=init5
+	v6=init6
+	v7=init7
+	v8=init8
+	v9=init9
+	v10=init10
+	v11=init11
+	v12=init12
+Params:
+	w_inj=1111.1112 [type=real]
+	w_zi=1000000 [type=real]
+	w_ref=1000000 [type=real]
+	init1=1+0i
+	init2=-0.5-0.866025403784i
+	init3=-0.5+0.866025403784i
+	init4=0.987624991889-0.00604442503236i
+	init5=-0.50135137107-0.856086194764i
+	init6=-0.488976836262+0.860257772617i
+	init7=0.934794520607-0.0599372998823i
+	init8=-0.521125513799-0.788480712049i
+	init9=-0.418124501898+0.841854522876i
+	init10=0.795798697095-0.127828151147i
+	init11=-0.536304084433-0.676843731242i
+	init12=-0.29431256515+0.777072614314i
+	sl1=1+0i
+	sl2=-0.5-0.866025403784i
+	sl3=-0.5+0.866025403784i
+	y1x1=31.3315435018-71.6488186091i
+	y1x2=-15.4739567585+24.7120262151i
+	y1x3=-5.4389548361+15.386191075i
+	y1x4=-31.3315435018+71.6488186091i
+	y1x5=15.4739567585-24.7120262151i
+	y1x6=5.4389548361-15.386191075i
+	y2x1=-15.4739567585+24.7120262151i
+	y2x2=35.1585074944-74.6478575264i
+	y2x3=-9.34823041796+19.1794114707i
+	y2x4=15.4739567585-24.7120262151i
+	y2x5=-35.1585074944+74.6478575264i
+	y2x6=9.34823041796-19.1794114707i
+	y3x1=-5.4389548361+15.386191075i
+	y3x2=-9.34823041796+19.1794114707i
+	y3x3=28.0137970085-69.0147269105i
+	y3x4=5.4389548361-15.386191075i
+	y3x5=9.34823041796-19.1794114707i
+	y3x6=-28.0137970085+69.0147269105i
+	y4x1=-31.3315435018+71.6488186091i
+	y4x2=15.4739567585-24.7120262151i
+	y4x3=5.4389548361-15.386191075i
+	y4x4=34.0342462045-87.8650348253i
+	y4x5=-15.4739567585+24.7120262151i
+	y4x6=-5.4389548361+15.386191075i
+	y4x7=-2.7027027027+16.2162162162i
+	y5x1=15.4739567585-24.7120262151i
+	y5x2=-35.1585074944+74.6478575264i
+	y5x3=9.34823041796-19.1794114707i
+	y5x4=-15.4739567585+24.7120262151i
+	y5x5=37.8612101971-90.8640737426i
+	y5x6=-9.34823041796+19.1794114707i
+	y5x8=-2.7027027027+16.2162162162i
+	y6x1=5.4389548361-15.386191075i
+	y6x2=9.34823041796-19.1794114707i
+	y6x3=-28.0137970085+69.0147269105i
+	y6x4=-5.4389548361+15.386191075i
+	y6x5=-9.34823041796+19.1794114707i
+	y6x6=30.7164997112-85.2309431267i
+	y6x9=-2.7027027027+16.2162162162i
+	y7x4=-2.7027027027+16.2162162162i
+	y7x7=5.49219734473-22.5952187574i
+	y7x8=-1.37766974251+2.20014901968i
+	y7x9=-0.484238364211+1.36985583115i
+	y7x10=-2.78949464203+6.37900254119i
+	y7x11=1.37766974251-2.20014901968i
+	y7x12=0.484238364211-1.36985583115i
+	y8x5=-2.7027027027+16.2162162162i
+	y8x7=-1.37766974251+2.20014901968i
+	y8x8=5.83291772935-22.8622277221i
+	y8x9=-0.832287073945+1.70757197237i
+	y8x10=1.37766974251-2.20014901968i
+	y8x11=-3.13021502664+6.64601150583i
+	y8x12=0.832287073945-1.70757197237i
+	y9x6=-2.7027027027+16.2162162162i
+	y9x7=-0.484238364211+1.36985583115i
+	y9x8=-0.832287073945+1.70757197237i
+	y9x9=5.19681336321-22.3607015949i
+	y9x10=0.484238364211-1.36985583115i
+	y9x11=0.832287073945-1.70757197237i
+	y9x12=-2.4941106605+6.14448537866i
+	y10x7=-2.78949464203+6.37900254119i
+	y10x8=1.37766974251-2.20014901968i
+	y10x9=0.484238364211-1.36985583115i
+	y10x10=2.78949464203-6.37900254119i
+	y10x11=-1.37766974251+2.20014901968i
+	y10x12=-0.484238364211+1.36985583115i
+	y11x7=1.37766974251-2.20014901968i
+	y11x8=-3.13021502664+6.64601150583i
+	y11x9=0.832287073945-1.70757197237i
+	y11x10=-1.37766974251+2.20014901968i
+	y11x11=3.13021502664-6.64601150583i
+	y11x12=-0.832287073945+1.70757197237i
+	y12x7=0.484238364211-1.36985583115i
+	y12x8=0.832287073945-1.70757197237i
+	y12x9=-2.4941106605+6.14448537866i
+	y12x10=-0.484238364211+1.36985583115i
+	y12x11=-0.832287073945+1.70757197237i
+	y12x12=2.4941106605-6.14448537866i
+	vt1=1 [type=real]
+	vm1=vt1 [type=real out=true]
+	st1=1.0167235686+0.711053926604i
+	sm1=st1 [out=true]
+	vt2=1 [type=real]
+	vm2=vt2 [type=real out=true]
+	st2=0.957370005112+0.651454900838i
+	sm2=st2 [out=true]
+	vt3=1 [type=real]
+	vm3=vt3 [type=real out=true]
+	st3=0.984631428674+0.69195891138i
+	sm3=st3 [out=true]
+	vt4=0.987643488147 [type=real]
+	vm4=vt4 [type=real out=true]
+	st4=-6.97454941344e-15+7.06044585941e-15i
+	sm4=st4 [out=true]
+	vt5=0.992087077901 [type=real]
+	vm5=vt5 [type=real out=true]
+	st5=-1.26027126048e-15+4.82258700825e-15i
+	sm5=st5 [out=true]
+	vt6=0.989515933044 [type=real]
+	vm6=vt6 [type=real out=true]
+	st6=-3.26531947284e-15+2.18765220867e-15i
+	sm6=st6 [out=true]
+	vt7=0.936714084273 [type=real]
+	vm7=vt7 [type=real out=true]
+	st7=1.07916326297e-15+5.45392048113e-15i
+	sm7=st7 [out=true]
+	vt8=0.94513154344 [type=real]
+	vm8=vt8 [type=real out=true]
+	st8=-5.25233664594e-16+3.47139326483e-16i
+	sm8=st8 [out=true]
+	vt9=0.939971880842 [type=real]
+	vm9=vt9 [type=real out=true]
+	st9=-2.2406617087e-15-1.80705878588e-16i
+	sm9=st9 [out=true]
+	vt10=0.805999753426 [type=real]
+	vm10=vt10 [type=real out=true]
+	st10=-0.9-0.435889894354i
+	sm10=st10 [out=true]
+	vt11=0.863562104021 [type=real]
+	vm11=vt11 [type=real out=true]
+	st11=-0.9-0.435889894354i
+	sm11=st11 [out=true]
+	vt12=0.830940270971 [type=real]
+	vm12=vt12 [type=real out=true]
+	st12=-0.9-0.435889894354i
+	sm12=st12 [out=true]
+	vest1=vt1 [type=real out=true]
+	vest2=vt2 [type=real out=true]
+	vest3=vt3 [type=real out=true]
+	vest4=vt4 [type=real out=true]
+	vest5=vt5 [type=real out=true]
+	vest6=vt6 [type=real out=true]
+	vest7=vt7 [type=real out=true]
+	vest8=vt8 [type=real out=true]
+	vest9=vt9 [type=real out=true]
+	vest10=vt10 [type=real out=true]
+	vest11=vt11 [type=real out=true]
+	vest12=vt12 [type=real out=true]
+Distribs:
+	gs [type=Gauss mean=0 dev=0.01 width=0.04]
+Stats:
+	stat
+PreProc:
+	sm10 = st10 + rnd(gs)
+	sm11 = st11 + rnd(gs)
+	sm12 = st12 + rnd(gs)
+WLSEs:
+	[w=w_ref]	v1 = sl1
+	[w=w_ref]	conj(v1) = conj(sl1)
+	[w=w_ref]	v2 = sl2
+	[w=w_ref]	conj(v2) = conj(sl2)
+	[w=w_ref]	v3 = sl3
+	[w=w_ref]	conj(v3) = conj(sl3)
+	[w=w_zi]	v4*conj(y4x1*v1 + y4x2*v2 + y4x3*v3 + y4x4*v4 + y4x5*v5 + y4x6*v6 + y4x7*v7) = sm4
+	[w=w_zi]	conj(v4)*(y4x1*v1 + y4x2*v2 + y4x3*v3 + y4x4*v4 + y4x5*v5 + y4x6*v6 + y4x7*v7) = conj(sm4)
+	[w=w_zi]	v5*conj(y5x1*v1 + y5x2*v2 + y5x3*v3 + y5x4*v4 + y5x5*v5 + y5x6*v6 + y5x8*v8) = sm5
+	[w=w_zi]	conj(v5)*(y5x1*v1 + y5x2*v2 + y5x3*v3 + y5x4*v4 + y5x5*v5 + y5x6*v6 + y5x8*v8) = conj(sm5)
+	[w=w_zi]	v6*conj(y6x1*v1 + y6x2*v2 + y6x3*v3 + y6x4*v4 + y6x5*v5 + y6x6*v6 + y6x9*v9) = sm6
+	[w=w_zi]	conj(v6)*(y6x1*v1 + y6x2*v2 + y6x3*v3 + y6x4*v4 + y6x5*v5 + y6x6*v6 + y6x9*v9) = conj(sm6)
+	[w=w_zi]	v7*conj(y7x4*v4 + y7x7*v7 + y7x8*v8 + y7x9*v9 + y7x10*v10 + y7x11*v11 + y7x12*v12) = sm7
+	[w=w_zi]	conj(v7)*(y7x4*v4 + y7x7*v7 + y7x8*v8 + y7x9*v9 + y7x10*v10 + y7x11*v11 + y7x12*v12) = conj(sm7)
+	[w=w_zi]	v8*conj(y8x5*v5 + y8x7*v7 + y8x8*v8 + y8x9*v9 + y8x10*v10 + y8x11*v11 + y8x12*v12) = sm8
+	[w=w_zi]	conj(v8)*(y8x5*v5 + y8x7*v7 + y8x8*v8 + y8x9*v9 + y8x10*v10 + y8x11*v11 + y8x12*v12) = conj(sm8)
+	[w=w_zi]	v9*conj(y9x6*v6 + y9x7*v7 + y9x8*v8 + y9x9*v9 + y9x10*v10 + y9x11*v11 + y9x12*v12) = sm9
+	[w=w_zi]	conj(v9)*(y9x6*v6 + y9x7*v7 + y9x8*v8 + y9x9*v9 + y9x10*v10 + y9x11*v11 + y9x12*v12) = conj(sm9)
+	[w=w_inj]	v10*conj(y10x7*v7 + y10x8*v8 + y10x9*v9 + y10x10*v10 + y10x11*v11 + y10x12*v12) = sm10
+	[w=w_inj]	conj(v10)*(y10x7*v7 + y10x8*v8 + y10x9*v9 + y10x10*v10 + y10x11*v11 + y10x12*v12) = conj(sm10)
+	[w=w_inj]	v11*conj(y11x7*v7 + y11x8*v8 + y11x9*v9 + y11x10*v10 + y11x11*v11 + y11x12*v12) = sm11
+	[w=w_inj]	conj(v11)*(y11x7*v7 + y11x8*v8 + y11x9*v9 + y11x10*v10 + y11x11*v11 + y11x12*v12) = conj(sm11)
+	[w=w_inj]	v12*conj(y12x7*v7 + y12x8*v8 + y12x9*v9 + y12x10*v10 + y12x11*v11 + y12x12*v12) = sm12
+	[w=w_inj]	conj(v12)*(y12x7*v7 + y12x8*v8 + y12x9*v9 + y12x10*v10 + y12x11*v11 + y12x12*v12) = conj(sm12)
+PostProc:
+	vest1 = abs(v1)
+	vest2 = abs(v2)
+	vest3 = abs(v3)
+	vest4 = abs(v4)
+	vest5 = abs(v5)
+	vest6 = abs(v6)
+	vest7 = abs(v7)
+	vest8 = abs(v8)
+	vest9 = abs(v9)
+	vest10 = abs(v10)
+	vest11 = abs(v11)
+	vest12 = abs(v12)
+end

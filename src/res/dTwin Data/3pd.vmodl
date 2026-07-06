@@ -1,0 +1,42 @@
+Header:
+	newTab = false
+	drawPlots = true
+end
+Model [name="Three-phase WLS state-estimation results"]:
+Plots [backColor=auto]:
+	linePlot [maxY=2 xLabel="Iterations" yLabel="Log(eps)" name="Precision" legend=true nCols=1 anchor=TR anchorX=40 anchorY=30]:
+		@x << baseIter#
+		@y << log(obtEps# + 1e-20) [colorL=green colorD=yellow width=4 pattern=solid name="eps"]
+		@cond -> repeat# == 0
+	end
+	linePlot [minY=0.75 maxY=1.2 xLabel="solution" yLabel="Voltage [p.u.]" name="Estimated phase voltage magnitudes" anchor=TR legend=true nCols=2 anchorX=45 anchorY=145]:
+		@x << baseIter#
+		@y << abs(v1) [width=2 pattern=solid colorL=black colorD=white name="V11"]
+		@y << abs(v2) [width=2 pattern=solid colorL=red colorD=orange name="V12"]
+		@y << abs(v3) [width=2 pattern=solid colorL=blue colorD=cyan name="V13"]
+		@y << abs(v4) [width=2 pattern=solid colorL=darkGreen colorD=lime name="V21"]
+		@y << abs(v5) [width=2 pattern=solid colorL=orange colorD=yellow name="V22"]
+		@y << abs(v6) [width=2 pattern=solid colorL=magenta colorD=hotPink name="V23"]
+		@y << abs(v7) [width=2 pattern=solid colorL=darkCyan colorD=aqua name="V31"]
+		@y << abs(v8) [width=2 pattern=solid colorL=purple colorD=violet name="V32"]
+		@y << abs(v9) [width=2 pattern=solid colorL=saddleBrown colorD=coral name="V33"]
+		@y << abs(v10) [width=2 pattern=solid colorL=gold colorD=gold name="V41"]
+		@y << abs(v11) [width=2 pattern=solid colorL=lime colorD=springGreen name="V42"]
+		@y << abs(v12) [width=2 pattern=solid colorL=coral colorD=salmon name="V43"]
+	end
+	linePlot [xLabel="solution" yLabel="Angle [rad]" name="Estimated phase voltage angles" anchor=TR legend=true nCols=2 anchorX=45 anchorY=145]:
+		@x << baseIter#
+		@y << atg2(v1) [width=2 pattern=solid colorL=black colorD=white name="ang11"]
+		@y << atg2(v2) [width=2 pattern=solid colorL=red colorD=orange name="ang12"]
+		@y << atg2(v3) [width=2 pattern=solid colorL=blue colorD=cyan name="ang13"]
+		@y << atg2(v4) [width=2 pattern=solid colorL=darkGreen colorD=lime name="ang21"]
+		@y << atg2(v5) [width=2 pattern=solid colorL=orange colorD=yellow name="ang22"]
+		@y << atg2(v6) [width=2 pattern=solid colorL=magenta colorD=hotPink name="ang23"]
+		@y << atg2(v7) [width=2 pattern=solid colorL=darkCyan colorD=aqua name="ang31"]
+		@y << atg2(v8) [width=2 pattern=solid colorL=purple colorD=violet name="ang32"]
+		@y << atg2(v9) [width=2 pattern=solid colorL=saddleBrown colorD=coral name="ang33"]
+		@y << atg2(v10) [width=2 pattern=solid colorL=gold colorD=gold name="ang41"]
+		@y << atg2(v11) [width=2 pattern=solid colorL=lime colorD=springGreen name="ang42"]
+		@y << atg2(v12) [width=2 pattern=solid colorL=coral colorD=salmon name="ang43"]
+	end
+end
