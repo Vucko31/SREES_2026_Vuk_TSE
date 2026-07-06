@@ -1,0 +1,1199 @@
+#LyX 2.5 created this file. For more info see https://www.lyx.org/
+\lyxformat 643
+\begin_document
+\begin_header
+\save_transient_properties true
+\origin unavailable
+\textclass article
+\use_default_options true
+\maintain_unincluded_children no
+\language bosnian
+\language_package default
+\inputencoding auto-legacy
+\fontencoding auto
+\font_roman "default" "default"
+\font_sans "default" "default"
+\font_typewriter "default" "default"
+\font_math "auto" "auto"
+\font_default_family default
+\use_non_tex_fonts false
+\font_sc false
+\font_roman_osf false
+\font_sans_osf false
+\font_typewriter_osf false
+\font_sf_scale 100 100
+\font_tt_scale 100 100
+\use_microtype false
+\use_dash_ligatures true
+\graphics default
+\default_output_format default
+\output_sync 0
+\bibtex_command default
+\index_command default
+\paperfontsize default
+\spacing single
+\use_hyperref false
+\papersize default
+\use_geometry false
+\use_package amsmath 1
+\use_package amssymb 1
+\use_package cancel 1
+\use_package esint 1
+\use_package mathdots 1
+\use_package mathtools 1
+\use_package mhchem 1
+\use_package stackrel 1
+\use_package stmaryrd 1
+\use_package undertilde 1
+\cite_engine basic
+\cite_engine_type default
+\biblio_style plain
+\use_bibtopic false
+\use_indices false
+\paperorientation portrait
+\suppress_date false
+\justification default
+\crossref_package refstyle
+\use_formatted_ref 0
+\use_minted 0
+\use_lineno 0
+\backgroundcolor none
+\fontcolor none
+\notefontcolor lightgray
+\boxbgcolor red
+\table_border_color default
+\table_odd_row_color default
+\table_even_row_color default
+\table_alt_row_colors_start 1
+\index Index
+\shortcut idx
+\color #008000
+\end_index
+\secnumdepth 3
+\tocdepth 3
+\paragraph_separation indent
+\paragraph_indentation default
+\is_math_indent 0
+\math_numbering_side default
+\quotes_style english
+\dynamic_quotes 0
+\papercolumns 1
+\papersides 1
+\paperpagestyle default
+\tablestyle default
+\tracking_changes false
+\output_changes false
+\change_bars false
+\postpone_fragile_content false
+\html_math_output 0
+\html_css_as_file 0
+\html_be_strict false
+\docbook_table_output 0
+\docbook_mathml_prefix 1
+\docbook_mathml_version 0
+\end_header
+
+\begin_body
+
+\begin_layout Title
+Konvertor trofazne estimacije stanja:
+ kompleksne koordinate
+\end_layout
+
+\begin_layout Author
+Harun Vuk 19633
+\end_layout
+
+\begin_layout Date
+SREES 2026
+\end_layout
+
+\begin_layout Standard
+\begin_inset CommandInset toc
+LatexCommand tableofcontents
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+\backslash
+clearpage
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+Uvod
+\end_layout
+
+\begin_layout Standard
+Ovaj projekat implementira natID/dTwin plugin za generisanje WLS modela i estimaciju stanja trofaznog elektroenergetskog sistema.
+ Osnovna ideja projekta je da se podaci iz MATPOWER trofaznih modela učitaju kroz grafički interfejs,
+ obrade koristeći natID dense i sparse matrice,
+ te na osnovu njih generiše dTwin WLS model.
+ U generisanom modelu mjerenja su zašumljena Gaussovim šumom,
+ tako da se može demonstrirati estimacija stanja u dTwin-u.
+ Plugin je implementiran kao DLL biblioteka za dTwin.
+ Kod je konfigurisan preko CMake-a i organizovan tako da se nakon uspješnog builda DLL automatski kopira u dTwin plugin folder.
+ Nakon konverzije model se automatski učitava u dTwin.
+\end_layout
+
+\begin_layout Section
+Cilj projekta
+\end_layout
+
+\begin_layout Standard
+Cilj projekta je napraviti alat koji iz MATPOWER trofaznih podataka automatski generiše dTwin model za WLS estimaciju stanja.
+ Model sadrži mjerene napone i injekcije snage,
+ a u mjerenja se dodaje Gaussov šum kako bi se simulirala realnija mjerna situacija.
+ Nakon konverzije korisnik može otvoriti model u dTwin-u,
+ pokrenuti Solve i analizirati procijenjene napone,
+ uglove,
+ te statistiku greške za sve faze svih čvorova.
+\end_layout
+
+\begin_layout Standard
+Primarni ulaz projekta su MATPOWER 
+\family typewriter
+.m
+\family default
+ fajlovi:
+\end_layout
+
+\begin_layout Itemize
+prvenstveno se koristi trofazna 
+\family typewriter
+mpc.bus3p
+\family default
+ tabela,
+ a ako ona nije prisutna koristi se fallback na 
+\family typewriter
+mpc.bus
+\family default
+ tabelu sa kolonama 
+\family typewriter
+Vm
+\family default
+ i 
+\family typewriter
+Va
+\family default
+.
+\end_layout
+
+\begin_layout Standard
+Iz MATPOWER ulaza se generiše 
+\family typewriter
+.dmodl
+\family default
+ fajl sa WLS jednačinama i 
+\family typewriter
+.vmodl
+\family default
+ fajl sa grafičkim prikazom rezultata.
+ Pomoćni sparse dio koda zadržan je samo kao tehnička podrška za rad sa natID sparse matricama,
+ ali glavni cilj projekta je WLS estimacija stanja iz MATPOWER podataka.
+\end_layout
+
+\begin_layout Section
+Teorijska osnova estimacije stanja
+\end_layout
+
+\begin_layout Standard
+Estimacija stanja u elektroenergetskom sistemu služi da se iz raspoloživih mjerenja dobije najbolja procjena stvarnog radnog stanja mreže.
+ U distribucijskim mrežama ovo je posebno važno zato što mjerenja često nisu kompletna,
+ opterećenja su neuravnotežena,
+ a jednofazni ekvivalent ne opisuje dovoljno dobro sve faze sistema.
+ Zbog toga se u ovom projektu stanje modela posmatra po fazama,
+ odnosno kao skup kompleksnih napona svih čvorova i faza.
+\end_layout
+
+\begin_layout Standard
+U klasičnoj formulaciji mjerni model se piše kao:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+z=h(x)+e.
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Vektor 
+\family typewriter
+z
+\family default
+ predstavlja mjerene vrijednosti,
+ 
+\family typewriter
+x
+\family default
+ predstavlja nepoznati vektor stanja,
+ 
+\family typewriter
+h(x)
+\family default
+ predstavlja nelinearne funkcije mjerenja,
+ a 
+\family typewriter
+e
+\family default
+ predstavlja grešku mjerenja.
+ Za WLS pristup potrebno je da postoji dovoljan broj redundantnih mjerenja,
+ jer se stanje bira tako da najbolje odgovara svim dostupnim mjerenjima.
+\end_layout
+
+\begin_layout Standard
+WLS kriterij koji se minimizira je:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+J(x)=\frac{1}{2}\left[z-h(x)\right]^{T}W\left[z-h(x)\right].
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Matrica 
+\family typewriter
+W
+\family default
+ je matrica težina i obično se bira na osnovu varijansi mjerenja.
+ Mjerenja sa manjom varijansom imaju veću težinu,
+ dok mjerenja sa većom očekivanom greškom manje utiču na rezultat.
+ Nakon linearizacije dobija se iterativni Gauss-Newton korak:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\left(H^{T}WH\right)\Delta x=H^{T}W\left[z-h(x)\right],\qquad x_{k+1}=x_{k}+\Delta x.
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+Kompleksne koordinate u projektu
+\end_layout
+
+\begin_layout Standard
+Uobičajene implementacije estimacije stanja često koriste realne varijable,
+ npr.
+ amplitude i uglove napona ili realne i imaginarne dijelove napona.
+ U ovom projektu naglasak je na kompleksnim koordinatama,
+ jer se fazorski naponi prirodno zapisuju kao kompleksni brojevi.
+ Za svaku bus-fazu stanje se može zapisati kao:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+V_{i}=V_{i,re}+jV_{i,im}=|V_{i}|e^{j\theta_{i}}.
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Prednost ovakvog zapisa je što se AC mrežne jednačine prirodno izražavaju preko fazorskih napona i admitansne matrice.
+ Osnovna jednačina kompleksne injekcije snage u čvoru može se pisati kao:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+S_{i}=V_{i}\,\overline{\sum_{j}Y_{ij}V_{j}}.
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Ova jednačina direktno povezuje MATPOWER mrežni model,
+ matricu admitansi 
+\family typewriter
+Ybus
+\family default
+ i mjerenja aktivne i reaktivne snage.
+ U implementaciji se napon svake faze tretira kao kompleksna varijabla stanja.
+\end_layout
+
+\begin_layout Standard
+Kod kompleksne WLS formulacije realne funkcije mjerenja nisu analitičke samo po kompleksnoj promjenljivoj,
+ pa se u literaturi koristi Wirtingerov račun,
+ gdje se funkcija posmatra kao zavisna od 
+\family typewriter
+x
+\family default
+ i od kompleksno konjugovane promjenljive 
+\family typewriter
+conj(x)
+\family default
+.
+ Time se kompleksni naponi mogu koristiti direktno u WLS formulaciji.
+\end_layout
+
+\begin_layout Section
+Mjerenja i šum
+\end_layout
+
+\begin_layout Standard
+U realnim sistemima mjerenja mogu dolaziti iz SCADA sistema,
+ RTU uređaja i PMU mjernih jedinica.
+ Tipična mjerenja su amplitude napona,
+ uglovi,
+ struje,
+ aktivne i reaktivne snage,
+ odnosno injekcije i tokovi snage.
+ Pošto cilj projekta nije povezivanje sa stvarnim mjernim uređajima,
+ mjerenja se u generisanom dTwin modelu simuliraju iz MATPOWER referentnih vrijednosti.
+ Na referentnu vrijednost dodaje se Gaussov šum,
+ čime se dobija jednostavan testni slučaj za WLS solver.
+\end_layout
+
+\begin_layout Standard
+Takav pristup je pogodan za demonstraciju jer se zna tačna referentna vrijednost iz MATPOWER ulaza,
+ a istovremeno se dobija realnija mjerna situacija u kojoj solver ne dobija savršena mjerenja.
+ Zbog toga se u 
+\family typewriter
+PostProc
+\family default
+ sekciji mogu računati odstupanja između referentnih,
+ zašumljenih i estimiranih vrijednosti.
+\end_layout
+
+\begin_layout Section
+Korisnički interfejs
+\end_layout
+
+\begin_layout Standard
+Korisnički interfejs je napravljen pomoću natID GUI biblioteke.
+ Glavni prozor plugina sadrži tabove za konverziju i opcije.
+ U tabu za konverziju korisnik bira ulazni fajl,
+ izlazni fajl i pokreće obradu.
+ Tokom obrade prikazuje se status,
+ progress indikator i tekstualni pregled rezultata.
+\end_layout
+
+\begin_layout Standard
+Implementacija interfejsa prati strukturu natID primjera za plugine:
+\end_layout
+
+\begin_layout Itemize
+
+\family typewriter
+TSEPlugin.cpp
+\family default
+ implementira dTwin plugin interfejs i izvoz funkcije 
+\family typewriter
+getPluginInterface()
+\family default
+.
+\end_layout
+
+\begin_layout Itemize
+
+\family typewriter
+WindowPlugin.h
+\family default
+ kreira glavni prozor plugina.
+\end_layout
+
+\begin_layout Itemize
+
+\family typewriter
+TabView.h
+\family default
+ povezuje tab za konverziju i tab za opcije.
+\end_layout
+
+\begin_layout Itemize
+
+\family typewriter
+ViewConv.h
+\family default
+ sadrži GUI za izbor fajlova,
+ pokretanje konverzije i prikaz statusa.
+ U ovom fajlu su definisana dugmad Open,
+ Browse,
+ Convert i Cancel,
+ kao i raspored labela,
+ tekstualnih polja i progress indikatora.
+\end_layout
+
+\begin_layout Standard
+Sama konverzija nije implementirana u GUI fajlu,
+ nego se iz GUI-ja poziva zajednička funkcija 
+\family typewriter
+convertToComplexCoordinates
+\family default
+ iz fajla 
+\family typewriter
+ConverterCore.cpp
+\family default
+.
+\end_layout
+
+\begin_layout Section
+Korištenje natID matrica
+\end_layout
+
+\begin_layout Standard
+ Poseban zahtjev projekta je da se za matrične podatke koriste natID dense i sparse matrix klase.
+ U implementaciji se zbog toga ne koristi vlastita klasa matrice niti vanjska matrix biblioteka.
+ Pomoćni 
+\family typewriter
+std::vector
+\family default
+ se koristi samo kao privremeni buffer pri parsiranju tekstualnih fajlova,
+ dok se matrični podaci obrađuju kroz natID dense i sparse klase.
+ MATPOWER bus i bus3p podaci se smještaju u 
+\family typewriter
+dense::DblMatrix
+\family default
+.
+ Sparse API se koristi za dijelove koda u kojima se radi sa rijetkim koordinatnim zapisom,
+ preko 
+\family typewriter
+sparse::ICmplxMatrix
+\family default
+ i 
+\family typewriter
+sparse::createCmplxMatrix
+\family default
+.
+ Za MATPOWER ulaz koristi se dense matrica sa kolonama za broj bus-a,
+ tip bus-a,
+ amplitudu napona,
+ ugao napona,
+ bazni napon i oznaku faze.
+ Iz ove matrice se uzimaju vrijednosti potrebne za generisanje WLS modela i mjerenja.
+ Kada je potreban sparse zapis,
+ elementi se dodaju u natID sparse matricu metodom 
+\family typewriter
+addTriple1
+\family default
+.
+ Ovakav pristup prati način rada prikazan u natID primjerima 
+\family typewriter
+TestDense
+\family default
+ i 
+\family typewriter
+TestSparse
+\family default
+.
+ Dense matrice se koriste za kompaktne tabelarne MATPOWER podatke,
+ dok se sparse matrice koriste samo tamo gdje je prirodniji rijedak koordinatni zapis(kada je matrica velika a ima puno nula).
+\end_layout
+
+\begin_layout Section
+MATPOWER konverzija
+\end_layout
+
+\begin_layout Standard
+MATPOWER koristi per-unit sistem.
+ U trofaznim testnim fajlovima se prvo traži sekcija 
+\family typewriter
+mpc.bus3p
+\family default
+.
+ Ova sekcija sadrži podatke po sabirnicama i fazama,
+ pa je pogodna za rad sa trofaznim sistemom.
+ Ako 
+\family typewriter
+mpc.bus3p
+\family default
+ nije prisutan,
+ konvertor koristi standardnu 
+\family typewriter
+mpc.bus
+\family default
+ tabelu.
+ U 
+\family typewriter
+mpc.bus
+\family default
+ tabeli kolona 
+\family typewriter
+Vm
+\family default
+ predstavlja amplitudu napona u per-unit vrijednosti,
+ dok kolona 
+\family typewriter
+Va
+\family default
+ predstavlja ugao napona u stepenima.
+ Zbog toga su amplitude blizu vrijednosti 1,
+ a uglovi obično imaju relativno male vrijednosti u stepenima.
+ Ulazni MATPOWER podaci se smještaju u natID dense matricu 
+\family typewriter
+dense::DblMatrix
+\family default
+.
+ U toj matrici se za svaku sabirnicu ili fazu čuvaju identifikator sabirnice,
+ tip sabirnice,
+ amplituda napona,
+ ugao napona,
+ bazni napon i oznaka faze.
+ Ovakav zapis je koristan jer je MATPOWER ulaz tabelaran i za svaki red postoji mali broj poznatih kolona.
+\end_layout
+
+\begin_layout Standard
+Kada se pravi kompleksni koordinatni izlaz,
+ kompleksni napon se računa iz polarne forme:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+V=V_{m}(\cos(V_{a}\pi/180)+j\sin(V_{a}\pi/180)).
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Ako se koristi standardni 
+\family typewriter
+mpc.bus
+\family default
+ ulaz bez eksplicitnih faznih podataka,
+ plugin može formirati balansirani skup faza:
+\end_layout
+
+\begin_layout Itemize
+faza A:
+ 
+\family typewriter
+Vm angle Va
+\family default
+,
+\end_layout
+
+\begin_layout Itemize
+faza B:
+ 
+\family typewriter
+Vm angle Va - 120
+\family default
+,
+\end_layout
+
+\begin_layout Itemize
+faza C:
+ 
+\family typewriter
+Vm angle Va + 120
+\family default
+.
+\end_layout
+
+\begin_layout Standard
+Ako korisnik kao izlaz odabere 
+\family typewriter
+.dmodl
+\family default
+ fajl,
+ plugin generiše dTwin WLS model.
+ Model je zasnovan na strukturi dTwin WLS primjera i sadrži sekcije Vars,
+ Params,
+ Distribs,
+ Stats,
+ PreProc,
+ WLSEs,
+ PostProc.
+ U sekciji Distribs definisane su Gaussove raspodjele šuma.U PreProc sekciji Gaussov šum se dodaje mjerenim kompleksnim injekcijama snage.Amplitude i uglovi napona se ne zašumljuju direktno,
+ nego se nakon rješavanja računaju iz procijenjenih kompleksnih napona.
+\end_layout
+
+\begin_layout Standard
+Primjer zašumljavanja mjerenja u generisanom modelu je:
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+v1_meas = v1_real + rnd(g_v)
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+d1_meas = d1_real + rnd(g_a)
+\end_layout
+
+\begin_layout Standard
+Nakon toga se WLS jednačine nalaze u sekciji 
+\family typewriter
+WLSEs
+\family default
+.
+ U njima su definisane WLS jednačine stabilnog jezgra modela,
+ dok se svi bus-faza naponi i uglovi dodatno izvode kao izlazni mjerni signali za grafički prikaz.
+ Procijenjene vrijednosti jezgra modela i statistika greške računaju se u 
+\family typewriter
+PostProc
+\family default
+ sekciji.
+\end_layout
+
+\begin_layout Standard
+\align center
+\begin_inset Graphics
+	filename figures/PNG/3paJednacine.PNG
+	width 82text%
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Slika prikazuje dio generisanih WLS jednačina za model 
+\family typewriter
+3pa
+\family default
+.
+ Jednačine su zapisane u kompleksnim koordinatama,
+ pri čemu se za ne-referentne bus-faze koristi veza 
+\family typewriter
+S_i = V_i*conj(sum(Y_ij*V_j))
+\family default
+.
+ Na ovaj način se u dTwin model direktno unose kompleksne injekcije snage,
+ zero-injection ograničenja i mjerene injekcije sa odgovarajućim težinama.
+\end_layout
+
+\begin_layout Standard
+\align center
+\begin_inset Graphics
+	filename figures/PNG/ProfModJednacine.PNG
+	width 82text%
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Slika prikazuje dio generisanih WLS jednačina za model 
+\family typewriter
+profModel
+\family default
+.
+ Ovaj primjer je korišen kao referentni test jer daje jasniji pad napona po čvorovima.
+ Struktura jednačina ostaje ista kao kod modela 
+\family typewriter
+3pa
+\family default
+,
+ ali se numeričke vrijednosti admitansne matrice i mjerenih injekcija razlikuju prema ulaznim MATPOWER podacima.Uz 
+\family typewriter
+.dmodl
+\family default
+ fajl plugin generiše i odgovarajući 
+\family typewriter
+.vmodl
+\family default
+ fajl.
+ Vizuelni model služi za prikaz konvergencije te estimiranih napona i uglova svake faze.
+\end_layout
+
+\begin_layout Section
+Grafički prikaz rezultata
+\end_layout
+
+\begin_layout Standard
+Grafički prikaz rezultata se ostvaruje kroz dTwin vizuelni model 
+\family typewriter
+.vmodl
+\family default
+.
+ Kada korisnik konvertuje MATPOWER ulaz u 
+\family typewriter
+.dmodl
+\family default
+ model,
+ plugin automatski kreira i 
+\family typewriter
+.vmodl
+\family default
+ fajl.
+ U tom fajlu su definisana tri grafa:
+\end_layout
+
+\begin_layout Itemize
+Precision,
+\end_layout
+
+\begin_layout Itemize
+Estimated phase voltages,
+\end_layout
+
+\begin_layout Itemize
+Estimated phase angles,
+\end_layout
+
+\begin_layout Standard
+Graf Precision prikazuje tok numeričke greške WLS solvera kroz iteracije.
+ Estimated phase voltages prikazuje WLS procijenjene amplitude napona za svaki čvor i svaku fazu..
+ Estimated phase angles na isti način prikazuje WLS procijenjene uglove za sve faze svih čvorova.Boje krivih i širina linija su podešene tako da grafovi budu čitljiviji u dTwin-u.
+ Model se rješava kao jedna WLS estimacija sa jednom realizacijom Gaussovog šuma.
+ Zbog toga graf Precision prikazuje konvergenciju solvera,
+ dok grafovi napona i uglova prikazuju procijenjene WLS state varijable za sve bus-faze.
+ Repeats dio se koristi samo da dTwin dobije dovoljno tačaka za iscrtavanje grafova,
+ pri čemu se šum generiše samo u prvom prolazu i zatim ostaje isti.Početni skok ili peak na grafovima napona i uglova predstavlja početnu korekciju WLS solvera.
+ Solver kreće iz inicijalne pretpostavke u kojoj su amplitude napona postavljene blizu 
+\family typewriter
+1 p.u.
+\family default
+,
+ a uglovi blizu nule.
+ Nakon što se uzmu u obzir zašumljena mjerenja,
+ jednačine mjerenja napona i jednačine mjerenja uglova,
+ solver u prvim iteracijama može napraviti veću korekciju stanja.
+ Ako se vrijednosti poslije tog početnog skoka stabilizuju,
+ takvo ponašanje predstavlja normalnu konvergenciju WLS estimacije,
+ a ne grešku u modelu.
+\end_layout
+
+\begin_layout Standard
+U dokumentaciji se nalazi i OpenDraw dijagram koji prikazuje tok konverzije i arhitekturu plugina.
+ Dijagram je sačuvan u folderu 
+\family typewriter
+docs
+\family default
+.
+\end_layout
+
+\begin_layout Standard
+\align center
+\begin_inset Graphics
+	filename figures/PNG/3paPrecision.PNG
+	width 82text%
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Slika prikazuje tok numeričke greške za model 
+\family typewriter
+3pa
+\family default
+.
+ Vrijednost greške se smanjuje kroz iteracije,
+ što pokazuje da WLS solver pronalazi stabilno rješenje za generisani trofazni model.
+\end_layout
+
+\begin_layout Standard
+\align center
+\begin_inset Graphics
+	filename figures/PNG/3paAmplitude.PNG
+	width 82text%
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Slika prikazuje procijenjene amplitude faznih napona za model 
+\family typewriter
+3pa
+\family default
+.
+ Svaka kriva predstavlja jednu bus-fazu,
+ pa se za četiri cvora i tri faze dobija ukupno dvanaest naponskih krivih.
+ Različite vrijednosti napona po fazama pokazuju da se model ne tretira kao idealno simetričan sistem.
+\end_layout
+
+\begin_layout Standard
+\align center
+\begin_inset Graphics
+	filename figures/PNG/3paUgao.PNG
+	width 82text%
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Slika prikazuje procijenjene uglove faznih napona za model 
+\family typewriter
+3pa
+\family default
+.
+ Uglovi faza su grupisani oko karakterističnih faznih pomaka trofaznog sistema,
+ ali se pojedinačne krive razlikuju zbog nesimetričnosti mreže,
+ opterećenja i impedansi vodova.
+\end_layout
+
+\begin_layout Standard
+\align center
+\begin_inset Graphics
+	filename figures/PNG/profModPrecision.PNG
+	width 82text%
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Slika prikazuje tok numeričke greške za model 
+\family typewriter
+profModel
+\family default
+.
+ Ovaj primjer je korišten za poređenje sa referentnim vrijednostima iz literature.
+ Stabilizacija greške potvrduje da se WLS problem može riješiti i za testni model sa izraženijim padom napona.
+\end_layout
+
+\begin_layout Standard
+\align center
+\begin_inset Graphics
+	filename figures/PNG/profModAmplituda.PNG
+	width 82text%
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Slika prikazuje procijenjene amplitude faznih napona za model 
+\family typewriter
+profModel
+\family default
+.
+ Na ovom primjeru se jasno vidi pad napona prema udaljenijim cvorovima,
+ posebno na posljednjem trofaznom cvoru.
+ Dobijene vrijednosti su u skladu sa očekivanim ponašanjem distribucijske mreze i referentnim testom.
+\end_layout
+
+\begin_layout Standard
+\align center
+\begin_inset Graphics
+	filename figures/PNG/profModUgao.PNG
+	width 82text%
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Slika prikazuje procijenjene uglove faznih napona za model 
+\family typewriter
+profModel
+\family default
+.
+ Graf potvrđuje da se stanje procjenjuje po fazama,
+ a ne preko jednog zajedničkog balansiranog napona.
+ Manje razlike između krivih nastaju zbog trofaznih parametara mreže i različitog opterećenja faza.
+\end_layout
+
+\begin_layout Section
+Organizacija projekta
+\end_layout
+
+\begin_layout Standard
+Projekat je organizovan prema zahtjevu zadatka.
+ Osnovni folderi su:
+\end_layout
+
+\begin_layout Itemize
+
+\family typewriter
+docs
+\family default
+ - LyX izvještaj i prateća dokumentacija,
+\end_layout
+
+\begin_layout Itemize
+
+\family typewriter
+src
+\family default
+ - CMake,
+ C++ source fajlovi,
+ kompatibilni headeri i pomoćni tester,
+\end_layout
+
+\begin_layout Itemize
+
+\family typewriter
+presentation
+\family default
+ - finalna prezentacija i 
+\family typewriter
+ReadMe.txt
+\family default
+ sa trajanjem prezentacije.
+\end_layout
+
+\begin_layout Standard
+Glavni build fajl je 
+\family typewriter
+CMakeLists.txt
+\family default
+,
+ a definicija targeta se nalazi u 
+\family typewriter
+TSEComplexConverter.cmake
+\family default
+.
+ Glavni plugin target je 
+\family typewriter
+tse_complex_converter
+\family default
+.
+\end_layout
+
+\begin_layout Section
+Build i instalacija plugina
+\end_layout
+
+\begin_layout Standard
+Projekat se builda pomoću CMake-a.
+ Na Windows sistemu build je provjeren kroz Visual Studio generator.
+ Nakon builda DLL se automatski kopira u dTwin plugin folder:
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+C:
+\backslash
+Users
+\backslash
+mirza
+\backslash
+ba.natID
+\backslash
+dTwin
+\backslash
+plugins
+\end_layout
+
+\begin_layout Standard
+Ako je dTwin otvoren tokom builda,
+ kopiranje DLL-a može pasti jer dTwin drži prethodnu verziju plugina zaključanu.
+ U tom slučaju potrebno je zatvoriti dTwin i ponoviti build.
+\end_layout
+
+\begin_layout Section
+Testiranje
+\end_layout
+
+\begin_layout Standard
+Testiranje je urađeno kroz dva načina.
+ Prvi način je pokretanje plugina iz dTwin-a.
+\end_layout
+
+\begin_layout Standard
+Predloženi test ulazi su MATPOWER trofazni fajlovi:
+\end_layout
+
+\begin_layout Itemize
+MATPOWER ulaz:
+ 
+\family typewriter
+3p_b.m
+\family default
+ ili drugi trofazni MATPOWER fajl iz foldera 
+\family typewriter
+MatPower Data
+\family default
+.
+\end_layout
+
+\begin_layout Standard
+Kod MATPOWER testa treba provjeriti da su kreirani 
+\family typewriter
+.dmodl
+\family default
+ i 
+\family typewriter
+.vmodl
+\family default
+ fajlovi,
+ da se model automatski otvori u dTwin-u,
+ da Solve završi bez greške i da dTwin prikazuje tri grafa.
+\end_layout
+
+\begin_layout Standard
+Tokom testiranja je posebno provjereno da dTwin ne prijavljuje greške tipa nedovoljan broj WLS jednačina,
+ greška pri čitanju WLS jednačina ili nemogućnost inicijalizacije solvera.
+ Konačna verzija WLS modela koristi stabilnu strukturu dTwin WLS primjera,
+ a zašumljena mjerenja i statistika greške računaju se kroz PreProc i PostProc sekcije.
+\end_layout
+
+\begin_layout Subsection
+Poredjenje sa referentnim IEEE 4-bus rezultatima
+\end_layout
+
+\begin_layout Standard
+Za provjeru tačnosti korišten je primjer 
+\family typewriter
+profModel
+\family default
+,
+ koji odgovara IEEE 4-bus trofaznom testu iz literature za distribucijsku estimaciju stanja.
+ U knjizi 
+\family typewriter
+Distribution System State Estimation with examples in MATLAB,
+ AMPL and C++
+\family default
+ measurement set je prikazan u Table 6.1 na PDF strani 147,
+ odnosno na štampanoj strani 140.
+ Rezultati LS estimacije za isti test dati su u Table 6.3 na PDF strani 154,
+ odnosno na čtampanoj strani 147.
+\end_layout
+
+\begin_layout Standard
+Referentni rad 
+\family typewriter
+Hybrid State Estimation in Complex Variables
+\family default
+ koristi se kao teorijska osnova za zapis estimacije u kompleksnim varijablama,
+ dok je numeričko poređenje u ovom projektu napravljeno prema IEEE 4-bus primjeru iz DSSE knjige.
+\end_layout
+
+\begin_layout Standard
+Poređenje amplituda napona pokazuje da se rezultati generisani iz dTwin modela praktično poklapaju sa referentnim LS rezultatima:
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+V2:
+ ref = (0.9876,
+ 0.9921,
+ 0.9895),
+ dTwin = (0.987643,
+ 0.992087,
+ 0.989516)
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+V3:
+ ref = (0.9367,
+ 0.9451,
+ 0.9400),
+ dTwin = (0.936714,
+ 0.945132,
+ 0.939972)
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+V4:
+ ref = (0.8059,
+ 0.8637,
+ 0.8311),
+ dTwin = (0.806000,
+ 0.863562,
+ 0.830940)
+\end_layout
+
+\begin_layout Standard
+Odstupanja su reda veličine četvrte decimale,
+ što je očekivano zbog zaokruživanja vrijednosti u tabeli iz literature i zbog načina zapisa rezultata u generisanom dTwin modelu.
+ Ovo poređenje potvrđuje da konvertor pravilno formira trofaznu admitansnu matricu,
+ učitava impedanse vodova,
+ transformator,
+ opterećenje i referentne napone,
+ te da WLS model daje stanje koje odgovara referentnom IEEE 4-bus testu.
+\end_layout
+
+\begin_layout Section
+Korištena literatura
+\end_layout
+
+\begin_layout Standard
+Za teorijsku osnovu korišteni su materijali o Distribution System State Estimation i rad o hibridnoj estimaciji stanja u kompleksnim varijablama.
+ Prvi izvor je koristan za osnovnu WLS formulaciju,
+ tok estimacije stanja,
+ posebnosti distribucijskih mreža i trofazno modeliranje.
+ Drugi izvor je koristan za objašnjenje zašto se kompleksne varijable mogu koristiti u WLS estimaciji i kako se preko Wirtingerovog računa tretiraju realne funkcije kompleksnih napona.
+\end_layout
+
+\begin_layout Enumerate
+I.
+ Džafić,
+ M.
+ Hodžić i I.
+ Huseinagić,
+ Distribution System State Estimation with examples in MATLAB,
+ AMPL and C++.
+\end_layout
+
+\begin_layout Enumerate
+I.
+ Džafić,
+ R.
+ A.
+ Jabr i T.
+ Hrnjić,
+ Hybrid State Estimation in Complex Variables,
+ IEEE Transactions on Power Systems,
+ 2018.
+\end_layout
+
+\begin_layout Section
+Zaključak
+\end_layout
+
+\begin_layout Standard
+Implementirani plugin omogućava generisanje dTwin WLS modela iz MATPOWER trofaznih podataka.
+ Projekat koristi natID GUI,
+ natID dense matrice i natID sparse matrice,
+ te je konfigurisan kroz CMake.
+ Za MATPOWER ulaze generiše se dTwin WLS model sa Gaussovim šumom u mjerenjima,
+ kao i vizuelni model sa prikazom konvergencije,estimirane amplitude napona po fazama i estimirani uglovi po fazama
+\end_layout
+
+\begin_layout Standard
+Na ovaj način je dobijen kompletan tok od MATPOWER ulaznog fajla do dTwin modela,
+ rješavanja WLS problema i prikaza procijenjenih vrijednosti po fazama.
+\end_layout
+
+\end_body
+\end_document
